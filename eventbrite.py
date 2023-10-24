@@ -1,10 +1,12 @@
-import urllib3
+import urllib.request
 import json
 import os
 from datetime import timedelta, datetime
 import pytz
 
 # EVENTBRITE API SCRIPT
+# CHECK PARAS
+# CHECK RETURN PRINT
 
 EVENTBRITE_API_BASE_URL = "https://www.eventbriteapi.com/v3/"
 
@@ -87,80 +89,83 @@ free_ticket_details = {
     }
 }
 
-def get_organization(http, eventbrite_api_token):
+def get_organization(eventbrite_api_token):
     url = f"{EVENTBRITE_API_BASE_URL}users/me/organizations/"
     headers = {
         'Authorization': eventbrite_api_token
     }
 
-    # Make the GET request
-    resp = http.request('GET', url, headers=headers)
+    # Make the request
+    req = urllib.request.Request(url, headers=headers)
 
-    # Check the status code to ensure a successful request
+     # Perform the GET request
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read().decode('utf-8')
     if resp.status != 200:
-        print(f"HTTP Error: {resp.status}")
-        
-    data = resp.data.decode('utf-8')
-    print(data)
+        return print(f"HTTP Error: {resp.status}")
     return data
 
-def get_event_by_id(http,eventbrite_api_token, event_id):
+
+def get_event_by_id(eventbrite_api_token, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
     headers = {
         'Authorization': eventbrite_api_token
     }
 
-    # Make the GET request
-    resp = http.request('GET', url, headers=headers)
+    # Make the request
+    req = urllib.request.Request(url, headers=headers)
 
-    # Check the status code to ensure a successful request
+     # Perform the GET request
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read().decode('utf-8')
+
     if resp.status != 200:
-        print(f"HTTP Error: {resp.status}")
-        
-    data = resp.data.decode('utf-8')
-    print(data)
+        return print(f"HTTP Error: {resp.status}")
+    
     return data
 
-def get_events_by_organization(http,eventbrite_api_token, organization_id):
+def get_events_by_organization(eventbrite_api_token, organization_id):
     url = f"{EVENTBRITE_API_BASE_URL}organizations/{organization_id}/events"
     headers = {
         'Authorization': eventbrite_api_token
     }
 
-    # Make the GET request
-    resp = http.request('GET', url, headers=headers)
+    # Make the request
+    req = urllib.request.Request(url, headers=headers)
 
-    # Check the status code to ensure a successful request
+     # Perform the GET request
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read().decode('utf-8')
     if resp.status != 200:
-        print(f"HTTP Error: {resp.status}")
-    data = resp.data.decode('utf-8')
-    print(data)
+        return print(f"HTTP Error: {resp.status}")
+    return data
         
-def create_event(http, eventbrite_api_token, organization_id ,event_details):
+def create_event(eventbrite_api_token, organization_id ,event_details):
     url = f"{EVENTBRITE_API_BASE_URL}organizations/{organization_id}/events/"
     headers = {
     'Authorization': eventbrite_api_token,
     'Content-Type': 'application/json'
     }
+    event_details_bytes = event_details.encode('utf-8')
 
-    # Make the POST request
-    resp = http.request('POST', url, headers=headers, body=event_details)
+    req = urllib.request.Request(url, headers=headers, data=event_details_bytes, method='POST')
 
-    # Check the status code to ensure a successful request
-    if resp.status != 200:
-        error_data = json.loads(resp.data.decode('utf-8'))
-        error_detail = error_data.get('error_detail', {})
-        return {
-            "error": error_data.get('error', 'Unknown Error'),
-            "error_description": error_data.get('error_description', 'An error occurred'),
-            "error_detail": error_detail,
-            "status_code": resp.status
-        }
-    data = resp.data.decode('utf-8')
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read().decode('utf-8')
+
+        if resp.status != 200:
+            error_data = json.loads(data)
+            error_detail = error_data.get('error_detail', {})
+            return {
+                "error": error_data.get('error', 'Unknown Error'),
+                "error_description": error_data.get('error_description', 'An error occurred'),
+                "error_detail": error_detail,
+                "status_code": resp.status
+            }
     print({"message": "Event created successfully", "status_code": resp.status})
     return json.loads(data)
 
-def update_event(http, eventbrite_api_token, event_id, event_details):
+def update_event(eventbrite_api_token, event_id, event_details):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
     headers = {
     'Authorization': eventbrite_api_token,
@@ -168,23 +173,26 @@ def update_event(http, eventbrite_api_token, event_id, event_details):
     }
 
     # Make the POST request
-    resp = http.request('POST', url, headers=headers, body=event_details)
+    event_details_bytes = event_details.encode('utf-8')
 
-    # Check the status code to ensure a successful request
-    if resp.status != 200:
-        error_data = json.loads(resp.data.decode('utf-8'))
-        error_detail = error_data.get('error_detail', {})
-        return {
-            "error": error_data.get('error', 'Unknown Error'),
-            "error_description": error_data.get('error_description', 'An error occurred'),
-            "error_detail": error_detail,
-            "status_code": resp.status
-        }
-    data = resp.data.decode('utf-8')
+    req = urllib.request.Request(url, headers=headers, data=event_details_bytes, method='POST')
+
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read().decode('utf-8')
+
+        if resp.status != 200:
+            error_data = json.loads(data)
+            error_detail = error_data.get('error_detail', {})
+            return {
+                "error": error_data.get('error', 'Unknown Error'),
+                "error_description": error_data.get('error_description', 'An error occurred'),
+                "error_detail": error_detail,
+                "status_code": resp.status
+            }
     print({"message": "Event updated successfully", "status_code": resp.status})
     return json.loads(data)
 
-def delete_event(http, eventbrite_api_token, event_id):
+def delete_event(eventbrite_api_token, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
     headers = {
     'Authorization': eventbrite_api_token,
@@ -192,45 +200,50 @@ def delete_event(http, eventbrite_api_token, event_id):
     }
 
     # Make the DELETE request
-    resp = http.request('DELETE', url, headers=headers)
+    # Create a DELETE request using urllib.request
+    req = urllib.request.Request(url, headers=headers, method='DELETE')
+        
+    # Perform the request
+    with urllib.request.urlopen(req) as response:
+        status_code = response.getcode()
+        if status_code != 200:
+            error_data = json.loads(response.read().decode('utf-8'))
+            error_detail = error_data.get('error_detail', {})
+            return {
+                "error": error_data.get('error', 'Unknown Error'),
+                "error_description": error_data.get('error_description', 'An error occurred'),
+                "error_detail": error_detail,
+                "status_code": status_code
+            }
 
-    if resp.status != 200:
-        error_data = json.loads(resp.data.decode('utf-8'))
-        error_detail = error_data.get('error_detail', {})
-        return {
-            "error": error_data.get('error', 'Unknown Error'),
-            "error_description": error_data.get('error_description', 'An error occurred'),
-            "error_detail": error_detail,
-            "status_code": resp.status
-        }
-    
     # A successful DELETE request should return a 200 status code for Eventbrite
-    return print({"message": "Event deleted successfully", "status_code": resp.status})
+    return print({"message": "Event deleted successfully", "status_code": status_code})
 
-def unpublish_event(http, eventbrite_api_token, event_id):
+def unpublish_event(eventbrite_api_token, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/unpublish/"
     headers = {
     'Authorization': eventbrite_api_token,
     'Content-Type': 'application/json'
     }
     # Make the POST request
-    resp = http.request('POST', url, headers=headers)
+    req = urllib.request.Request(url, headers=headers, method='POST')
 
-    # Check the status code to ensure a successful request
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read().decode('utf-8')
 
-    if resp.status != 200:
-        error_data = json.loads(resp.data.decode('utf-8'))
-        error_detail = error_data.get('error_detail', {})
-        return {
-            "error": error_data.get('error', 'Unknown Error'),
-            "error_description": error_data.get('error_description', 'An error occurred'),
-            "error_detail": error_detail,
-            "status_code": resp.status
+        if resp.status != 200:
+            error_data = json.loads(data)
+            error_detail = error_data.get('error_detail', {})
+            return {
+                "error": error_data.get('error', 'Unknown Error'),
+                "error_description": error_data.get('error_description', 'An error occurred'),
+                "error_detail": error_detail,
+                "status_code": resp.status
             }
-    data = resp.data.decode('utf-8')
-    return {"message": "Event unpublished successfully", "status_code": resp.status}, json.loads(data)
+    print({"message": "Event unpublished successfully", "status_code": resp.status})
+    return json.loads(data)
     
-def publish_event(http, eventbrite_api_token, event_id):
+def publish_event(eventbrite_api_token, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/publish/"
     headers = {
     'Authorization': eventbrite_api_token,
@@ -238,111 +251,117 @@ def publish_event(http, eventbrite_api_token, event_id):
     }
 
     # Make the POST request
-    resp = http.request('POST', url, headers=headers)
+    req = urllib.request.Request(url, headers=headers, method='POST')
 
-    if resp.status != 200:
-        error_data = json.loads(resp.data.decode('utf-8'))
-        error_detail = error_data.get('error_detail', {})
-        return {
-            "error": error_data.get('error', 'Unknown Error'),
-            "error_description": error_data.get('error_description', 'An error occurred'),
-            "error_detail": error_detail,
-            "status_code": resp.status
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read().decode('utf-8')
+
+        if resp.status != 200:
+            error_data = json.loads(data)
+            error_detail = error_data.get('error_detail', {})
+            return {
+                "error": error_data.get('error', 'Unknown Error'),
+                "error_description": error_data.get('error_description', 'An error occurred'),
+                "error_detail": error_detail,
+                "status_code": resp.status
             }
-    data = resp.data.decode('utf-8')
-    print({"message": "Event: {} published successfully".format(event_id), "status_code": resp.status})
+    print({"message": "Event published successfully", "status_code": resp.status})
     return json.loads(data)
 
-def create_ticket_class(http, eventbrite_api_token, event_id, ticket_details):
+def create_ticket_class(eventbrite_api_token, event_id, ticket_details):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/ticket_classes/"
     headers = {
     'Authorization': eventbrite_api_token,
     'Content-Type': 'application/json'
     }
 
+    ticket_details_bytes = ticket_details.encode('utf-8')
+
     # Make the POST request
-    resp = http.request('POST', url, headers=headers, body=ticket_details)
-    
-    # Check the status code to ensure a successful request
+    req = urllib.request.Request(url, headers=headers, data=ticket_details_bytes, method='POST')
 
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read().decode('utf-8')
 
-    if resp.status != 200:
-        error_data = json.loads(resp.data.decode('utf-8'))
-        error_detail = error_data.get('error_detail', {})
-        return {
-            "error": error_data.get('error', 'Unknown Error'),
-            "error_description": error_data.get('error_description', 'An error occurred'),
-            "error_detail": error_detail,
-            "status_code": resp.status
+        if resp.status != 200:
+            error_data = json.loads(data)
+            error_detail = error_data.get('error_detail', {})
+            return {
+                "error": error_data.get('error', 'Unknown Error'),
+                "error_description": error_data.get('error_description', 'An error occurred'),
+                "error_detail": error_detail,
+                "status_code": resp.status
             }
-
-    data = resp.data.decode('utf-8')
     print({"message": "Ticket class created successfully", "status_code": resp.status})
     return json.loads(data)
     
-def get_ticket_class_by_id(http, eventbrite_api_token, event_id, ticket_class_id):
+def get_ticket_class_by_id(eventbrite_api_token, event_id, ticket_class_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/ticket_classes/{ticket_class_id}/"
     headers = {
     'Authorization': eventbrite_api_token,
     }
 
-    # Make the GET request
-    resp = http.request('GET', url, headers=headers)
+    # Make the request
+    req = urllib.request.Request(url, headers=headers)
 
-    # Check the status code to ensure a successful request
+     # Perform the GET request
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read().decode('utf-8')
+
     if resp.status != 200:
-        print(f"HTTP Error: {resp.status}")
-
-    data = resp.data.decode('utf-8')
-    print(data)
+        return print(f"HTTP Error: {resp.status}")
+    
     return data
 
-def update_ticket_class(http, eventbrite_api_token, event_id, ticket_class_id, ticket_details):
+def update_ticket_class(eventbrite_api_token, event_id, ticket_class_id, ticket_details):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/ticket_classes/{ticket_class_id}/"
     headers = {
         'Authorization': eventbrite_api_token,
         'Content-Type': 'application/json'
     }
     
+    ticket_details_bytes = ticket_details.encode('utf-8')
+
     # Make the POST request
-    resp = http.request('POST', url, headers=headers, body=ticket_details)
-    
-    if resp.status != 200:
-        error_data = json.loads(resp.data.decode('utf-8'))
-        error_detail = error_data.get('error_detail', {})
-        return {
-            "error": error_data.get('error', 'Unknown Error'),
-            "error_description": error_data.get('error_description', 'An error occurred'),
-            "error_detail": error_detail,
-            "status_code": resp.status
-        }
-    data = resp.data.decode('utf-8')
+    req = urllib.request.Request(url, headers=headers, data=ticket_details_bytes, method='POST')
+
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read().decode('utf-8')
+
+        if resp.status != 200:
+            error_data = json.loads(data)
+            error_detail = error_data.get('error_detail', {})
+            return {
+                "error": error_data.get('error', 'Unknown Error'),
+                "error_description": error_data.get('error_description', 'An error occurred'),
+                "error_detail": error_detail,
+                "status_code": resp.status
+            }
+    print({"message": "Ticket class updated successfully", "status_code": resp.status})
     return json.loads(data)
 
-def quick_create_event(http, eventbrite_api_token, organization_id, title, description, date_start, duration_hours, event_timezone='Australia/Perth', cost_cents=None, publish=False):
+def quick_create_event(eventbrite_api_token, organization_id, title, description, date_start, duration_hours, event_timezone='Australia/Perth', cost_cents=None, publish=False):
     
     # Create a timezone object for the specified timezone
-    event_timezone = pytz.timezone(event_timezone)
-    
+    new_timezone = pytz.timezone(event_timezone)
+    print("New timezone {}".format(new_timezone))
+
     # Convert date_start to a timezone-aware datetime
     date_start = datetime.strptime(date_start, "%Y-%m-%dT%H:%M:%S")
-    date_start = event_timezone.localize(date_start)
+
+    date_start = new_timezone.localize(date_start)
+    # Convert the local time string to a datetime object
 
     # Calculate the end datetime based on duration_hours
     date_end = date_start + timedelta(hours=duration_hours)
 
-    
     # Convert the start datetime to UTC
-    date_start = date_start.astimezone(pytz.utc)
+    utc_date_start = date_start.astimezone(pytz.utc)
     # Convert the end datetime to UTC
-    date_end = date_end.astimezone(pytz.utc)
-
-
-
-
-
+    utc_date_end = date_end.astimezone(pytz.utc)
 
     # Create the event details JSON
+
     event_detail = {
         "event": {
             "name": {
@@ -352,12 +371,13 @@ def quick_create_event(http, eventbrite_api_token, organization_id, title, descr
                 "html": f"<p>{description}</p>"
             },
             "start": {
-                "timezone": event_timezone.zone,
-                "utc": date_start.strftime("%Y-%m-%dT%H:%M:%SZ")
+                "timezone": new_timezone.zone,  
+                "utc": utc_date_start.strftime("%Y-%m-%dT%H:%M:%SZ")                
             },
             "end": {
-                "timezone": event_timezone.zone,
-                "utc": date_end.strftime("%Y-%m-%dT%H:%M:%SZ")
+                "timezone": new_timezone.zone,  
+                "utc": utc_date_end.strftime("%Y-%m-%dT%H:%M:%SZ")
+                
             },
             "currency": "AUD",
             "online_event": False,
@@ -380,7 +400,7 @@ def quick_create_event(http, eventbrite_api_token, organization_id, title, descr
     event_detail_json = json.dumps(event_detail)
 
     # Create the event
-    new_event = create_event(http,eventbrite_api_token, organization_id, event_detail_json)
+    new_event = create_event(eventbrite_api_token, organization_id, event_detail_json)
 
     # Extract the event_id from the response
     event_id = new_event.get('id')
@@ -412,9 +432,10 @@ def quick_create_event(http, eventbrite_api_token, organization_id, title, descr
     ticket_detail_json = json.dumps(ticket_detail)
 
     # Create the ticket class
-    new_tickets = create_ticket_class(http, eventbrite_api_token, event_id, ticket_detail_json)
+    new_tickets = create_ticket_class( eventbrite_api_token, event_id, ticket_detail_json)
+    
     if publish:
-        publish_event(http, eventbrite_api_token, event_id)
+        publish_event(eventbrite_api_token, event_id)
     return new_event, new_tickets
 
 if __name__ == "__main__":
@@ -424,20 +445,12 @@ if __name__ == "__main__":
     organization_id = os.environ['EVENTBRITE_ORGANIZATION_ID']
     publish = os.environ.get("PUBLISH")
 
-    # Create a PoolManager object
-    http = urllib3.PoolManager()
-
-    print(quick_create_event(http, eventbrite_api_token, organization_id, "API-TEST-7", "API-TEST-DESCRIPTION-9", "2023-11-12T14:00:00", 2, 'Australia/Perth', 2000, publish))
+    print(quick_create_event(eventbrite_api_token, organization_id, "API-TEST-617", "API-TEST-DESCRIPTION-9", "2023-11-12T14:00:00", 2, 'Australia/Perth', 2000, publish))
 
     # TO PUBLISH AN EVENT
     # 1. CREATE AN EVENT
     # 2. CREATE A TICKET CLASS TO EVENT
     # 3. PUBLISH EVENT
-
-    # create_event(http, organization_id, event_details)
-    # create_ticket_class(http, event_id, example_free_ticket_class)
-    # create_ticket_class(http, event_id, example_paid_ticket_class)
-    # publish_event(http, event_id)
 
     
     
