@@ -1,6 +1,8 @@
 import urllib3
 import json
 import os
+from datetime import timedelta, datetime
+import pytz
 
 # EVENTBRITE API SCRIPT
 
@@ -26,11 +28,10 @@ example_event_details = {
     "currency": "AUD",
     "online_event": False,
     "organizer_id": "",
-    "listed": False,
-    "shareable": False,
+    "listed": True,
+    "shareable": True,
     "invite_only": False,
     "show_remaining": True,
-    "password": "12345",
     "capacity": 100,
     "is_reserved_seating": False,
     "is_series": False,
@@ -145,7 +146,6 @@ def create_event(http, eventbrite_api_token, organization_id ,event_details):
     # Make the POST request
     resp = http.request('POST', url, headers=headers, body=event_details)
 
-
     # Check the status code to ensure a successful request
     if resp.status != 200:
         error_data = json.loads(resp.data.decode('utf-8'))
@@ -157,9 +157,8 @@ def create_event(http, eventbrite_api_token, organization_id ,event_details):
             "status_code": resp.status
         }
     data = resp.data.decode('utf-8')
-    print(data)
+    print({"message": "Event created successfully", "status_code": resp.status})
     return json.loads(data)
-
 
 def update_event(http, eventbrite_api_token, event_id, event_details):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
@@ -182,6 +181,7 @@ def update_event(http, eventbrite_api_token, event_id, event_details):
             "status_code": resp.status
         }
     data = resp.data.decode('utf-8')
+    print({"message": "Event updated successfully", "status_code": resp.status})
     return json.loads(data)
 
 def delete_event(http, eventbrite_api_token, event_id):
@@ -277,6 +277,7 @@ def create_ticket_class(http, eventbrite_api_token, event_id, ticket_details):
             }
 
     data = resp.data.decode('utf-8')
+    print({"message": "Ticket class created successfully", "status_code": resp.status})
     return json.loads(data)
     
 def get_ticket_class_by_id(http, eventbrite_api_token, event_id, ticket_class_id):
@@ -318,7 +319,14 @@ def update_ticket_class(http, eventbrite_api_token, event_id, ticket_class_id, t
     data = resp.data.decode('utf-8')
     return json.loads(data)
 
-def quick_create_event(http, eventbrite_api_token, organization_id, title, description, cost_cents=None, publish=True):
+def quick_create_event(http, eventbrite_api_token, organization_id, title, description, date_start, duration_hours, cost_cents=None, publish=False):
+    utc = pytz.UTC
+
+    date_start = datetime.strptime(date_start, "%Y-%m-%dT%H:%M:%SZ")
+    date_start = utc.localize(date_start)
+
+    date_end = date_start + timedelta(hours=duration_hours)
+    
     # Create the event details JSON
     event_detail = {
         "event": {
@@ -330,20 +338,19 @@ def quick_create_event(http, eventbrite_api_token, organization_id, title, descr
             },
             "start": {
                 "timezone": "UTC",
-                "utc": "2023-11-12T02:00:00Z"
+                "utc": date_start.strftime("%Y-%m-%dT%H:%M:%SZ")
             },
             "end": {
                 "timezone": "UTC",
-                "utc": "2023-11-30T02:00:00Z"
+                "utc": date_end.strftime("%Y-%m-%dT%H:%M:%SZ")
             },
             "currency": "AUD",
             "online_event": False,
             "organizer_id": "",
-            "listed": False,
-            "shareable": False,
+            "listed": True,
+            "shareable": True,
             "invite_only": False,
             "show_remaining": True,
-            "password": "12345",
             "capacity": 100,
             "is_reserved_seating": False,
             "is_series": False,
@@ -361,7 +368,7 @@ def quick_create_event(http, eventbrite_api_token, organization_id, title, descr
     new_event = create_event(http,eventbrite_api_token, organization_id, event_detail_json)
 
     # Extract the event_id from the response
-    event_id = new_event['id']
+    event_id = new_event.get('id')
 
     # Create the ticket class details JSON
     ticket_detail = {
@@ -380,8 +387,8 @@ def quick_create_event(http, eventbrite_api_token, organization_id, title, descr
             "hide_sale_dates": "false",
             "delivery_methods": ["electronic"],
             "include_fee": "false",
-            "sales_start": "2023-11-09T08:00:00Z",
-            "sales_end": "2023-11-11T03:00:00Z",
+            "sales_start": date_start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sales_end": date_end.strftime("%Y-%m-%dT%H:%M:%SZ"),
             **({"cost": f"AUD,{cost_cents}", "free": "false"} if cost_cents is not None else {'free': "true"}),
         }
     }
@@ -392,20 +399,21 @@ def quick_create_event(http, eventbrite_api_token, organization_id, title, descr
     # Create the ticket class
     new_tickets = create_ticket_class(http, eventbrite_api_token, event_id, ticket_detail_json)
     if publish:
-        publish_event(http,eventbrite_api_token, event_id)
+        publish_event(http, eventbrite_api_token, event_id)
     return new_event, new_tickets
 
 if __name__ == "__main__":
 
     # Retrieve the values of an environment variables
-    eventbrite_api_token = os.environ.get('EVENTBRITE_API_TOKEN')
-    organization_id = os.environ.get('EVENTBRITE_ORGANIZATION_ID')
+    eventbrite_api_token = os.environ['EVENTBRITE_API_TOKEN']
+    organization_id = os.environ['EVENTBRITE_ORGANIZATION_ID']
+    publish = os.environ.get("PUBLISH")
 
     # Create a PoolManager object
     http = urllib3.PoolManager()
 
-    # quick_create_event(http, eventbrite_api_token, organization_id, "API-TEST-01", "API-TEST-DESCRIPTION", 2000, True)
-
+    quick_create_event(http, eventbrite_api_token, organization_id, "API-TEST-04", "API-TEST-DESCRIPTION-4","2023-11-12T14:00:00Z", 2, 2000, publish)
+    
     # TO PUBLISH AN EVENT
     # 1. CREATE AN EVENT
     # 2. CREATE A TICKET CLASS TO EVENT
