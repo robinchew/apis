@@ -4,97 +4,87 @@ import os
 
 # EVENTBRITE API SCRIPT
 
-# Retrieve the values of an environment variables
-eventbrite_api_token = os.environ.get('EVENTBRITE_API_TOKEN')
-organization_id = os.environ.get('EVENTBRITE_ORGANISATION_ID')
-event_id = os.environ.get('EVENTBRITE_EVENT_ID')
-ticket_class_id = os.environ.get('EVENTBRITE_TICKET_CLASS_ID')
-
 EVENTBRITE_API_BASE_URL = "https://www.eventbriteapi.com/v3/"
 
 # Examples
-event_details = """
-  {
-    "event": {
-      "name": {
-        "html": "<p>Api test 2</p>"
-      },
-      "description": {
-        "html": "<p>Api test 3</p>"
-      },
-      "start": {
-        "timezone": "UTC",
-        "utc": "2023-11-12T02:00:00Z"
-      },
-      "end": {
-        "timezone": "UTC",
-        "utc": "2023-11-30T02:00:00Z"
-      },
-      "currency": "AUD",
-      "online_event": false,
-      "organizer_id": "",
-      "listed": false,
-      "shareable": false,
-      "invite_only": false,
-      "show_remaining": true,
-      "password": "12345",
-      "capacity": 100,
-      "is_reserved_seating": false,
-      "is_series": false,
-      "show_pick_a_seat": false,
-      "show_seatmap_thumbnail": false,
-      "show_colors_in_seatmap_thumbnail": false,
-      "locale": "en_AU"
-    }
-  }
-"""
-
-example_paid_ticket_class = """
-{
-    "ticket_class": {
-      "name": "API Test2",
-      "free": false,
-      "donation": false,
-      "quantity_total": "100",
-      "minimum_quantity": "1",
-      "maximum_quantity": "10",
-      "cost": "AUD,2000",
-      "hidden": false,
-      "auto_hide": false,
-      "auto_hide_before": "",
-      "auto_hide_after": "",
-      "sales_channels": ["online","atd"],
-      "hide_sale_dates": false,
-      "delivery_methods": ["electronic"],
-      "include_fee": false,
-      "sales_start": "2023-11-09T08:00:00Z",
-      "sales_end": "2023-11-11T03:00:00Z"
-    }
+example_event_details = {
+        "event": {
+            "name": {
+                "html": f"<p>API TEST</p>"
+            },
+            "description": {
+                "html": f"<p>API TEST DESC</p>"
+            },
+            "start": {
+                "timezone": "UTC",
+                "utc": "2023-11-12T02:00:00Z"
+            },
+            "end": {
+                "timezone": "UTC",
+                "utc": "2023-11-30T02:00:00Z"
+            },
+            "currency": "AUD",
+            "online_event": False,
+            "organizer_id": "",
+            "listed": False,
+            "shareable": False,
+            "invite_only": False,
+            "show_remaining": True,
+            "password": "12345",
+            "capacity": 100,
+            "is_reserved_seating": False,
+            "is_series": False,
+            "show_pick_a_seat": False,
+            "show_seatmap_thumbnail": False,
+            "show_colors_in_seatmap_thumbnail": False,
+            "locale": "en_AU"
+        }
 }
-"""
 
-example_free_ticket_class = """
-{
-    "ticket_class": {
-      "name": "API Test0",
-      "free": true,
-      "donation": false,
-      "quantity_total": "100",
-      "minimum_quantity": "1",
-      "maximum_quantity": "10",
-      "hidden": false,
-      "auto_hide": false,
-      "auto_hide_before": "",
-      "auto_hide_after": "",
-      "sales_channels": ["online","atd"],
-      "hide_sale_dates": false,
-      "delivery_methods": ["electronic"],
-      "include_fee": false,
-      "sales_start": "2023-11-09T08:00:00Z",
-      "sales_end": "2023-11-11T03:00:00Z"
+paid_ticket_details = {
+        "ticket_class": 
+        {
+        "name": "API Test1",
+        "free": "false",
+        "donation": "false",
+        "quantity_total": "100",
+        "minimum_quantity": "1",
+        "maximum_quantity": "10",
+        "hidden": "false",
+        "auto_hide": "false",
+        "auto_hide_before": "",
+        "auto_hide_after": "",
+        "sales_channels": ["online","atd"],
+        "hide_sale_dates": "false",
+        "delivery_methods": ["electronic"],
+        "include_fee": "false",
+        "sales_start": "2023-11-09T08:00:00Z",
+        "sales_end": "2023-11-11T03:00:00Z",
+        "cost": "AUD,2000",
+        }
     }
-}
-"""
+
+free_ticket_details = {
+        "ticket_class": 
+        {
+        "name": "API Test1",
+        "free": "false",
+        "donation": "false",
+        "quantity_total": "100",
+        "minimum_quantity": "1",
+        "maximum_quantity": "10",
+        "hidden": "false",
+        "auto_hide": "false",
+        "auto_hide_before": "",
+        "auto_hide_after": "",
+        "sales_channels": ["online","atd"],
+        "hide_sale_dates": "false",
+        "delivery_methods": ["electronic"],
+        "include_fee": "false",
+        "sales_start": "2023-11-09T08:00:00Z",
+        "sales_end": "2023-11-11T03:00:00Z",
+        }
+    }
 
 def get_organization(http):
     url = f"{EVENTBRITE_API_BASE_URL}users/me/organizations/"
@@ -106,11 +96,12 @@ def get_organization(http):
     resp = http.request('GET', url, headers=headers)
 
     # Check the status code to ensure a successful request
-    if resp.status == 200:
-        data = resp.data.decode('utf-8')
-        print(data)
-    else:
+    if resp.status != 200:
         print(f"HTTP Error: {resp.status}")
+        
+    data = resp.data.decode('utf-8')
+    print(data)
+    return data
 
 def get_event_by_id(http, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
@@ -122,11 +113,12 @@ def get_event_by_id(http, event_id):
     resp = http.request('GET', url, headers=headers)
 
     # Check the status code to ensure a successful request
-    if resp.status == 200:
-        data = resp.data.decode('utf-8')
-        print(data)
-    else:
+    if resp.status != 200:
         print(f"HTTP Error: {resp.status}")
+        
+    data = resp.data.decode('utf-8')
+    print(data)
+    return data
 
 def get_events_by_organization(http, organization_id):
     url = f"{EVENTBRITE_API_BASE_URL}organizations/{organization_id}/events"
@@ -138,12 +130,11 @@ def get_events_by_organization(http, organization_id):
     resp = http.request('GET', url, headers=headers)
 
     # Check the status code to ensure a successful request
-    if resp.status == 200:
-        data = resp.data.decode('utf-8')
-        print(data)
-    else:
+    if resp.status != 200:
         print(f"HTTP Error: {resp.status}")
-
+    data = resp.data.decode('utf-8')
+    print(data)
+        
 def create_event(http, organization_id ,event_details):
     url = f"{EVENTBRITE_API_BASE_URL}organizations/{organization_id}/events/"
     headers = {
@@ -154,29 +145,23 @@ def create_event(http, organization_id ,event_details):
     try:
         # Make the POST request
         resp = http.request('POST', url, headers=headers, body=event_details)
-        # Check the status code to ensure a successful request
-        if resp.status == 200:
-            data = resp.data.decode('utf-8')
-            print(data)
-            return json.loads(data)
-        elif resp.status == 400:
-            error_data = json.loads(resp.data.decode('utf-8'))
-            error_detail = error_data.get('error_detail', {})
-            return {
-                "error": error_data.get('error', 'Unknown Error'),
-                "error_description": error_data.get('error_description', 'An error occurred'),
-                "error_detail": error_detail,
-                "status_code": resp.status
-            }
-        else:
-            print(f"HTTP Error: {resp.status}")
-            return None
     except urllib3.exceptions.HTTPError as e:
+        pass
+
+    # Check the status code to ensure a successful request
+    if resp.status != 200:
+        error_data = json.loads(resp.data.decode('utf-8'))
+        error_detail = error_data.get('error_detail', {})
         return {
-            "error": "HTTP Error",
-            "error_description": str(e),
-            "status_code": e.code
+            "error": error_data.get('error', 'Unknown Error'),
+            "error_description": error_data.get('error_description', 'An error occurred'),
+            "error_detail": error_detail,
+            "status_code": resp.status
         }
+    data = resp.data.decode('utf-8')
+    print(data)
+    return json.loads(data)
+
 
 def update_event(http, event_id, event_details):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
@@ -188,28 +173,21 @@ def update_event(http, event_id, event_details):
     try:
         # Make the POST request
         resp = http.request('POST', url, headers=headers, body=event_details)
-        # Check the status code to ensure a successful request
-        if resp.status == 200:
-            data = resp.data.decode('utf-8')
-            return json.loads(data)
-        elif resp.status == 400:
-            error_data = json.loads(resp.data.decode('utf-8'))
-            error_detail = error_data.get('error_detail', {})
-            return {
-                "error": error_data.get('error', 'Unknown Error'),
-                "error_description": error_data.get('error_description', 'An error occurred'),
-                "error_detail": error_detail,
-                "status_code": resp.status
-            }
-        else:
-            print(f"HTTP Error: {resp.status}")
-            return None
     except urllib3.exceptions.HTTPError as e:
+        pass
+
+    # Check the status code to ensure a successful request
+    if resp.status != 200:
+        error_data = json.loads(resp.data.decode('utf-8'))
+        error_detail = error_data.get('error_detail', {})
         return {
-            "error": "HTTP Error",
-            "error_description": str(e),
-            "status_code": e.code
+            "error": error_data.get('error', 'Unknown Error'),
+            "error_description": error_data.get('error_description', 'An error occurred'),
+            "error_detail": error_detail,
+            "status_code": resp.status
         }
+    data = resp.data.decode('utf-8')
+    return json.loads(data)
 
 def delete_event(http, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
@@ -220,11 +198,8 @@ def delete_event(http, event_id):
 
     # Make the DELETE request
     resp = http.request('DELETE', url, headers=headers)
-    # Check the status code to ensure a successful request
-    if resp.status == 200:
-        # A successful DELETE request should return a 200 status code for Eventbrite
-        return {"message": "Event deleted successfully", "status_code": resp.status}
-    elif resp.status == 400:
+
+    if resp.status != 200:
         error_data = json.loads(resp.data.decode('utf-8'))
         error_detail = error_data.get('error_detail', {})
         return {
@@ -233,9 +208,9 @@ def delete_event(http, event_id):
             "error_detail": error_detail,
             "status_code": resp.status
         }
-    else:
-        print(f"HTTP Error: {resp.status}")
-        return None
+    
+    # A successful DELETE request should return a 200 status code for Eventbrite
+    return {"message": "Event deleted successfully", "status_code": resp.status}
 
 def unpublish_event(http, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/unpublish/"
@@ -247,10 +222,8 @@ def unpublish_event(http, event_id):
     resp = http.request('POST', url, headers=headers)
 
     # Check the status code to ensure a successful request
-    if resp.status == 200:
-        data = resp.data.decode('utf-8')
-        return json.loads(data)
-    elif resp.status == 400:
+
+    if resp.status != 200:
         error_data = json.loads(resp.data.decode('utf-8'))
         error_detail = error_data.get('error_detail', {})
         return {
@@ -259,9 +232,8 @@ def unpublish_event(http, event_id):
             "error_detail": error_detail,
             "status_code": resp.status
             }
-    else:
-        print(f"HTTP Error: {resp.status}")
-        return None
+    data = resp.data.decode('utf-8')
+    return {"message": "Event unpublished successfully", "status_code": resp.status}, json.loads(data)
     
 def publish_event(http, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/publish/"
@@ -273,11 +245,7 @@ def publish_event(http, event_id):
     # Make the POST request
     resp = http.request('POST', url, headers=headers)
 
-    # Check the status code to ensure a successful request
-    if resp.status == 200:
-        data = resp.data.decode('utf-8')
-        return json.loads(data)
-    elif resp.status == 400:
+    if resp.status != 200:
         error_data = json.loads(resp.data.decode('utf-8'))
         error_detail = error_data.get('error_detail', {})
         return {
@@ -286,9 +254,9 @@ def publish_event(http, event_id):
             "error_detail": error_detail,
             "status_code": resp.status
             }
-    else:
-        print(f"HTTP Error: {resp.status}")
-        return None
+    data = resp.data.decode('utf-8')
+    return json.loads(data)
+
 
 def create_ticket_class(http, event_id, ticket_details):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/ticket_classes/"
@@ -301,10 +269,9 @@ def create_ticket_class(http, event_id, ticket_details):
     resp = http.request('POST', url, headers=headers, body=ticket_details)
     
     # Check the status code to ensure a successful request
-    if resp.status == 200:
-        data = resp.data.decode('utf-8')
-        return json.loads(data)
-    elif resp.status == 400:
+
+
+    if resp.status != 200:
         error_data = json.loads(resp.data.decode('utf-8'))
         error_detail = error_data.get('error_detail', {})
         return {
@@ -313,9 +280,9 @@ def create_ticket_class(http, event_id, ticket_details):
             "error_detail": error_detail,
             "status_code": resp.status
             }
-    else:
-        print(f"HTTP Error: {resp.status}")
-        return None
+
+    data = resp.data.decode('utf-8')
+    return json.loads(data)
     
 def get_ticket_class_by_id(http, event_id, ticket_class_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/ticket_classes/{ticket_class_id}/"
@@ -327,11 +294,12 @@ def get_ticket_class_by_id(http, event_id, ticket_class_id):
     resp = http.request('GET', url, headers=headers)
 
     # Check the status code to ensure a successful request
-    if resp.status == 200:
-        data = resp.data.decode('utf-8')
-        print(data)
-    else:
+    if resp.status != 200:
         print(f"HTTP Error: {resp.status}")
+
+    data = resp.data.decode('utf-8')
+    print(data)
+    return data
 
 def update_ticket_class(http, event_id, ticket_class_id, ticket_details):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/ticket_classes/{ticket_class_id}/"
@@ -343,11 +311,7 @@ def update_ticket_class(http, event_id, ticket_class_id, ticket_details):
     # Make the POST request
     resp = http.request('POST', url, headers=headers, body=ticket_details)
     
-    # Check the status code to ensure a successful request
-    if resp.status == 200:
-        data = resp.data.decode('utf-8')
-        return json.loads(data)
-    elif resp.status == 400:
+    if resp.status != 200:
         error_data = json.loads(resp.data.decode('utf-8'))
         error_detail = error_data.get('error_detail', {})
         return {
@@ -356,14 +320,100 @@ def update_ticket_class(http, event_id, ticket_class_id, ticket_details):
             "error_detail": error_detail,
             "status_code": resp.status
         }
-    else:
-        print(f"HTTP Error: {resp.status}")
-        return None
+    data = resp.data.decode('utf-8')
+    return json.loads(data)
+
+
+def quick_create_event(http, organization_id, title, description, cost_cents=None, publish=True):
+    # Create the event details JSON
+    event_detail = {
+        "event": {
+            "name": {
+                "html": f"<p>{title}</p>"
+            },
+            "description": {
+                "html": f"<p>{description}</p>"
+            },
+            "start": {
+                "timezone": "UTC",
+                "utc": "2023-11-12T02:00:00Z"
+            },
+            "end": {
+                "timezone": "UTC",
+                "utc": "2023-11-30T02:00:00Z"
+            },
+            "currency": "AUD",
+            "online_event": False,
+            "organizer_id": "",
+            "listed": False,
+            "shareable": False,
+            "invite_only": False,
+            "show_remaining": True,
+            "password": "12345",
+            "capacity": 100,
+            "is_reserved_seating": False,
+            "is_series": False,
+            "show_pick_a_seat": False,
+            "show_seatmap_thumbnail": False,
+            "show_colors_in_seatmap_thumbnail": False,
+            "locale": "en_AU"
+        }
+    }
+
+    # Convert the event details to a JSON string
+    event_detail_json = json.dumps(event_detail)
+
+    # Create the event
+    new_event = create_event(http, organization_id, event_detail_json)
+
+    # Extract the event_id from the response
+    event_id = new_event.get("id")
+
+    # Create the ticket class details JSON
+    ticket_detail = {
+        "ticket_class": 
+        {
+        "name": "API Test1",
+        "free": "true" if cost_cents is None else "false",
+        "donation": "false",
+        "quantity_total": "100",
+        "minimum_quantity": "1",
+        "maximum_quantity": "10",
+        "hidden": "false",
+        "auto_hide": "false",
+        "auto_hide_before": "",
+        "auto_hide_after": "",
+        "sales_channels": ["online","atd"],
+        "hide_sale_dates": "false",
+        "delivery_methods": ["electronic"],
+        "include_fee": "false",
+        "sales_start": "2023-11-09T08:00:00Z",
+        "sales_end": "2023-11-11T03:00:00Z",
+        **({"cost": f"AUD,{cost_cents}"} if cost_cents is not None else {}),
+        }
+    }
+
+    # Convert the ticket class details to a JSON string
+    ticket_detail_json = json.dumps(ticket_detail)
+
+    # Create the ticket class
+    new_tickets = create_ticket_class(http, event_id, ticket_detail_json)
+    if publish:
+        publish_event(http, event_id)
+    return new_event, new_tickets
 
 if __name__ == "__main__":
+
+    # Retrieve the values of an environment variables
+    eventbrite_api_token = os.environ.get('EVENTBRITE_API_TOKEN')
+    organization_id = os.environ.get('EVENTBRITE_ORGANIZATION_ID')
+
     # Create a PoolManager object
     http = urllib3.PoolManager()
 
+    # print(quick_create_event(http, EVENTBRITE_ORGANISATION_ID, "API-TEST", "API-TEST-DESC", 2000, True))
+
+    
     # TO PUBLISH AN EVENT
     # 1. CREATE AN EVENT
     # 2. CREATE A TICKET CLASS TO EVENT
