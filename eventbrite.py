@@ -5,8 +5,6 @@ from datetime import timedelta, datetime
 import pytz
 
 # EVENTBRITE API SCRIPT
-# CHECK PARAS
-# CHECK RETURN PRINT
 
 EVENTBRITE_API_BASE_URL = "https://www.eventbriteapi.com/v3/"
 
@@ -104,7 +102,6 @@ def get_organization(eventbrite_api_token):
     if resp.status != 200:
         return print(f"HTTP Error: {resp.status}")
     return data
-
 
 def get_event_by_id(eventbrite_api_token, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
@@ -344,7 +341,6 @@ def quick_create_event(eventbrite_api_token, organization_id, title, description
     
     # Create a timezone object for the specified timezone
     new_timezone = pytz.timezone(event_timezone)
-    print("New timezone {}".format(new_timezone))
 
     # Convert date_start to a timezone-aware datetime
     date_start = datetime.strptime(date_start, "%Y-%m-%dT%H:%M:%S")
