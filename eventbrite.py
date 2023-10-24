@@ -319,14 +319,29 @@ def update_ticket_class(http, eventbrite_api_token, event_id, ticket_class_id, t
     data = resp.data.decode('utf-8')
     return json.loads(data)
 
-def quick_create_event(http, eventbrite_api_token, organization_id, title, description, date_start, duration_hours, cost_cents=None, publish=False):
-    utc = pytz.UTC
-
-    date_start = datetime.strptime(date_start, "%Y-%m-%dT%H:%M:%SZ")
-    date_start = utc.localize(date_start)
-
-    date_end = date_start + timedelta(hours=duration_hours)
+def quick_create_event(http, eventbrite_api_token, organization_id, title, description, date_start, duration_hours, event_timezone='Australia/Perth', cost_cents=None, publish=False):
     
+    # Create a timezone object for the specified timezone
+    event_timezone = pytz.timezone(event_timezone)
+    
+    # Convert date_start to a timezone-aware datetime
+    date_start = datetime.strptime(date_start, "%Y-%m-%dT%H:%M:%S")
+    date_start = event_timezone.localize(date_start)
+
+    # Calculate the end datetime based on duration_hours
+    date_end = date_start + timedelta(hours=duration_hours)
+
+    
+    # Convert the start datetime to UTC
+    date_start = date_start.astimezone(pytz.utc)
+    # Convert the end datetime to UTC
+    date_end = date_end.astimezone(pytz.utc)
+
+
+
+
+
+
     # Create the event details JSON
     event_detail = {
         "event": {
@@ -337,11 +352,11 @@ def quick_create_event(http, eventbrite_api_token, organization_id, title, descr
                 "html": f"<p>{description}</p>"
             },
             "start": {
-                "timezone": "UTC",
+                "timezone": event_timezone.zone,
                 "utc": date_start.strftime("%Y-%m-%dT%H:%M:%SZ")
             },
             "end": {
-                "timezone": "UTC",
+                "timezone": event_timezone.zone,
                 "utc": date_end.strftime("%Y-%m-%dT%H:%M:%SZ")
             },
             "currency": "AUD",
@@ -412,8 +427,8 @@ if __name__ == "__main__":
     # Create a PoolManager object
     http = urllib3.PoolManager()
 
-    quick_create_event(http, eventbrite_api_token, organization_id, "API-TEST-04", "API-TEST-DESCRIPTION-4","2023-11-12T14:00:00Z", 2, 2000, publish)
-    
+    print(quick_create_event(http, eventbrite_api_token, organization_id, "API-TEST-7", "API-TEST-DESCRIPTION-9", "2023-11-12T14:00:00", 2, 'Australia/Perth', 2000, publish))
+
     # TO PUBLISH AN EVENT
     # 1. CREATE AN EVENT
     # 2. CREATE A TICKET CLASS TO EVENT
