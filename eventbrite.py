@@ -96,7 +96,7 @@ example_free_ticket_class = """
 }
 """
 
-def getOrganization(http):
+def get_organization(http):
     url = f"{EVENTBRITE_API_BASE_URL}users/me/organizations/"
     headers = {
         'Authorization': eventbrite_api_token
@@ -112,7 +112,7 @@ def getOrganization(http):
     else:
         print(f"HTTP Error: {resp.status}")
 
-def getEventById(http, event_id):
+def get_event_by_id(http, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
     headers = {
         'Authorization': eventbrite_api_token
@@ -128,7 +128,7 @@ def getEventById(http, event_id):
     else:
         print(f"HTTP Error: {resp.status}")
 
-def getEventsByOrganization(http, organization_id):
+def get_events_by_organization(http, organization_id):
     url = f"{EVENTBRITE_API_BASE_URL}organizations/{organization_id}/events"
     headers = {
         'Authorization': eventbrite_api_token
@@ -144,7 +144,7 @@ def getEventsByOrganization(http, organization_id):
     else:
         print(f"HTTP Error: {resp.status}")
 
-def createEvent(http, organization_id ,event_details):
+def create_event(http, organization_id ,event_details):
     url = f"{EVENTBRITE_API_BASE_URL}organizations/{organization_id}/events/"
     headers = {
     'Authorization': eventbrite_api_token,
@@ -178,7 +178,7 @@ def createEvent(http, organization_id ,event_details):
             "status_code": e.code
         }
 
-def updateEvent(http, event_id, event_details):
+def update_event(http, event_id, event_details):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
     headers = {
     'Authorization': eventbrite_api_token,
@@ -211,7 +211,7 @@ def updateEvent(http, event_id, event_details):
             "status_code": e.code
         }
 
-def deleteEvent(http, event_id):
+def delete_event(http, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/"
     headers = {
     'Authorization': eventbrite_api_token,
@@ -237,7 +237,7 @@ def deleteEvent(http, event_id):
         print(f"HTTP Error: {resp.status}")
         return None
 
-def unpublishEvent(http, event_id):
+def unpublish_event(http, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/unpublish/"
     headers = {
     'Authorization': eventbrite_api_token,
@@ -263,7 +263,7 @@ def unpublishEvent(http, event_id):
         print(f"HTTP Error: {resp.status}")
         return None
     
-def publishEvent(http, event_id):
+def publish_event(http, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/publish/"
     headers = {
     'Authorization': eventbrite_api_token,
@@ -290,7 +290,7 @@ def publishEvent(http, event_id):
         print(f"HTTP Error: {resp.status}")
         return None
 
-def createTicketClass(http, event_id, ticket_details):
+def create_ticket_class(http, event_id, ticket_details):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/ticket_classes/"
     headers = {
     'Authorization': eventbrite_api_token,
@@ -317,7 +317,7 @@ def createTicketClass(http, event_id, ticket_details):
         print(f"HTTP Error: {resp.status}")
         return None
     
-def getTicketClassById(http, event_id, ticket_class_id):
+def get_ticket_class_by_id(http, event_id, ticket_class_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/ticket_classes/{ticket_class_id}/"
     headers = {
     'Authorization': eventbrite_api_token,
@@ -333,7 +333,7 @@ def getTicketClassById(http, event_id, ticket_class_id):
     else:
         print(f"HTTP Error: {resp.status}")
 
-def updateTicketClass(http, event_id, ticket_class_id, ticket_details):
+def update_ticket_class(http, event_id, ticket_class_id, ticket_details):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/ticket_classes/{ticket_class_id}/"
     headers = {
         'Authorization': eventbrite_api_token,
@@ -369,10 +369,10 @@ if __name__ == "__main__":
     # 2. CREATE A TICKET CLASS TO EVENT
     # 3. PUBLISH EVENT
 
-    # createEvent(http, organization_id, event_details)
-    # createTicketClass(http, event_id, example_free_ticket_class)
-    # createTicketClass(http, event_id, example_paid_ticket_class)
-    # publishEvent(http, event_id)
+    # create_event(http, organization_id, event_details)
+    # create_ticket_class(http, event_id, example_free_ticket_class)
+    # create_ticket_class(http, event_id, example_paid_ticket_class)
+    # publish_event(http, event_id)
 
     
     
