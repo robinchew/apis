@@ -8,84 +8,6 @@ import pytz
 
 EVENTBRITE_API_BASE_URL = "https://www.eventbriteapi.com/v3/"
 
-# Examples
-example_event_details = {
-"event": {
-    "name": {
-        "html": f"<p>API TEST</p>"
-        },
-    "description": {
-        "html": f"<p>API TEST DESC</p>"
-        },
-    "start": {
-        "timezone": "UTC",
-        "utc": "2023-11-12T02:00:00Z"
-        },
-    "end": {
-        "timezone": "UTC",
-        "utc": "2023-11-30T02:00:00Z"
-        },
-    "currency": "AUD",
-    "online_event": False,
-    "organizer_id": "",
-    "listed": True,
-    "shareable": True,
-    "invite_only": False,
-    "show_remaining": True,
-    "capacity": 100,
-    "is_reserved_seating": False,
-    "is_series": False,
-    "show_pick_a_seat": False,
-    "show_seatmap_thumbnail": False,
-    "show_colors_in_seatmap_thumbnail": False,
-    "locale": "en_AU"
-    }
-}
-
-paid_ticket_details = {
-"ticket_class": 
-    {
-    "name": "API Test1",
-    "free": "false",
-    "donation": "false",
-    "quantity_total": "100",
-    "minimum_quantity": "1",
-    "maximum_quantity": "10",
-    "hidden": "false",
-    "auto_hide": "false",
-    "auto_hide_before": "",
-    "auto_hide_after": "",
-    "sales_channels": ["online","atd"],
-    "hide_sale_dates": "false",
-    "delivery_methods": ["electronic"],
-    "include_fee": "false",
-    "sales_start": "2023-11-09T08:00:00Z",
-    "sales_end": "2023-11-11T03:00:00Z",
-    "cost": "AUD,2000",
-    }
-}
-
-free_ticket_details = {
-"ticket_class": 
-    {
-    "name": "API Test1",
-    "free": "false",
-    "donation": "false",
-    "quantity_total": "100",
-    "minimum_quantity": "1",
-    "maximum_quantity": "10",
-    "hidden": "false",
-    "auto_hide": "false",
-    "auto_hide_before": "",
-    "auto_hide_after": "",
-    "sales_channels": ["online","atd"],
-    "hide_sale_dates": "false",
-    "delivery_methods": ["electronic"],
-    "include_fee": "false",
-    "sales_start": "2023-11-09T08:00:00Z",
-    "sales_end": "2023-11-11T03:00:00Z",
-    }
-}
 
 def get_organization(eventbrite_api_token):
     url = f"{EVENTBRITE_API_BASE_URL}users/me/organizations/"
@@ -118,7 +40,7 @@ def get_event_by_id(eventbrite_api_token, event_id):
 
     if resp.status != 200:
         return print(f"HTTP Error: {resp.status}")
-    
+
     return data
 
 def get_events_by_organization(eventbrite_api_token, organization_id):
@@ -136,7 +58,7 @@ def get_events_by_organization(eventbrite_api_token, organization_id):
     if resp.status != 200:
         return print(f"HTTP Error: {resp.status}")
     return data
-        
+
 def create_event(eventbrite_api_token, organization_id ,event_details):
     url = f"{EVENTBRITE_API_BASE_URL}organizations/{organization_id}/events/"
     headers = {
@@ -199,7 +121,7 @@ def delete_event(eventbrite_api_token, event_id):
     # Make the DELETE request
     # Create a DELETE request using urllib.request
     req = urllib.request.Request(url, headers=headers, method='DELETE')
-        
+
     # Perform the request
     with urllib.request.urlopen(req) as response:
         status_code = response.getcode()
@@ -239,7 +161,7 @@ def unpublish_event(eventbrite_api_token, event_id):
             }
     print({"message": "Event unpublished successfully", "status_code": resp.status})
     return json.loads(data)
-    
+
 def publish_event(eventbrite_api_token, event_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/publish/"
     headers = {
@@ -291,7 +213,7 @@ def create_ticket_class(eventbrite_api_token, event_id, ticket_details):
             }
     print({"message": "Ticket class created successfully", "status_code": resp.status})
     return json.loads(data)
-    
+
 def get_ticket_class_by_id(eventbrite_api_token, event_id, ticket_class_id):
     url = f"{EVENTBRITE_API_BASE_URL}events/{event_id}/ticket_classes/{ticket_class_id}/"
     headers = {
@@ -307,7 +229,7 @@ def get_ticket_class_by_id(eventbrite_api_token, event_id, ticket_class_id):
 
     if resp.status != 200:
         return print(f"HTTP Error: {resp.status}")
-    
+
     return data
 
 def update_ticket_class(eventbrite_api_token, event_id, ticket_class_id, ticket_details):
@@ -316,7 +238,7 @@ def update_ticket_class(eventbrite_api_token, event_id, ticket_class_id, ticket_
         'Authorization': eventbrite_api_token,
         'Content-Type': 'application/json'
     }
-    
+
     ticket_details_bytes = ticket_details.encode('utf-8')
 
     # Make the POST request
@@ -338,7 +260,7 @@ def update_ticket_class(eventbrite_api_token, event_id, ticket_class_id, ticket_
     return json.loads(data)
 
 def quick_create_event(eventbrite_api_token, organization_id, title, description, date_start, duration_hours, event_timezone='Australia/Perth', cost_cents=None, publish=False):
-    
+
     # Create a timezone object for the specified timezone
     new_timezone = pytz.timezone(event_timezone)
 
@@ -367,13 +289,13 @@ def quick_create_event(eventbrite_api_token, organization_id, title, description
                 "html": f"<p>{description}</p>"
             },
             "start": {
-                "timezone": new_timezone.zone,  
-                "utc": utc_date_start.strftime("%Y-%m-%dT%H:%M:%SZ")                
+                "timezone": new_timezone.zone,
+                "utc": utc_date_start.strftime("%Y-%m-%dT%H:%M:%SZ")
             },
             "end": {
-                "timezone": new_timezone.zone,  
+                "timezone": new_timezone.zone,
                 "utc": utc_date_end.strftime("%Y-%m-%dT%H:%M:%SZ")
-                
+
             },
             "currency": "AUD",
             "online_event": False,
@@ -403,7 +325,7 @@ def quick_create_event(eventbrite_api_token, organization_id, title, description
 
     # Create the ticket class details JSON
     ticket_detail = {
-        "ticket_class": 
+        "ticket_class":
         {
             "name": "API Test1",
             "donation": "false",
@@ -429,7 +351,7 @@ def quick_create_event(eventbrite_api_token, organization_id, title, description
 
     # Create the ticket class
     new_tickets = create_ticket_class( eventbrite_api_token, event_id, ticket_detail_json)
-    
+
     if publish:
         publish_event(eventbrite_api_token, event_id)
     return new_event, new_tickets
@@ -448,7 +370,7 @@ if __name__ == "__main__":
     # 2. CREATE A TICKET CLASS TO EVENT
     # 3. PUBLISH EVENT
 
-    
-    
+
+
 
 
