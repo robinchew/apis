@@ -72,15 +72,15 @@ def create_event(eventbrite_api_token, organization_id ,event_details):
     with urllib.request.urlopen(req) as resp:
         data = resp.read().decode('utf-8')
 
-        if resp.status != 200:
-            error_data = json.loads(data)
-            error_detail = error_data.get('error_detail', {})
-            return {
-                "error": error_data.get('error', 'Unknown Error'),
-                "error_description": error_data.get('error_description', 'An error occurred'),
-                "error_detail": error_detail,
-                "status_code": resp.status
-            }
+    if resp.status != 200:
+        error_data = json.loads(data)
+        error_detail = error_data.get('error_detail', {})
+        return {
+            "error": error_data.get('error', 'Unknown Error'),
+            "error_description": error_data.get('error_description', 'An error occurred'),
+            "error_detail": error_detail,
+            "status_code": resp.status
+        }
     print({"message": "Event created successfully", "status_code": resp.status})
     return json.loads(data)
 
@@ -99,15 +99,15 @@ def update_event(eventbrite_api_token, event_id, event_details):
     with urllib.request.urlopen(req) as resp:
         data = resp.read().decode('utf-8')
 
-        if resp.status != 200:
-            error_data = json.loads(data)
-            error_detail = error_data.get('error_detail', {})
-            return {
-                "error": error_data.get('error', 'Unknown Error'),
-                "error_description": error_data.get('error_description', 'An error occurred'),
-                "error_detail": error_detail,
-                "status_code": resp.status
-            }
+    if resp.status != 200:
+        error_data = json.loads(data)
+        error_detail = error_data.get('error_detail', {})
+        return {
+            "error": error_data.get('error', 'Unknown Error'),
+            "error_description": error_data.get('error_description', 'An error occurred'),
+            "error_detail": error_detail,
+            "status_code": resp.status
+        }
     print({"message": "Event updated successfully", "status_code": resp.status})
     return json.loads(data)
 
@@ -118,22 +118,21 @@ def delete_event(eventbrite_api_token, event_id):
     'Content-Type': 'application/json'
     }
 
-    # Make the DELETE request
     # Create a DELETE request using urllib.request
     req = urllib.request.Request(url, headers=headers, method='DELETE')
 
     # Perform the request
     with urllib.request.urlopen(req) as response:
         status_code = response.getcode()
-        if status_code != 200:
-            error_data = json.loads(response.read().decode('utf-8'))
-            error_detail = error_data.get('error_detail', {})
-            return {
-                "error": error_data.get('error', 'Unknown Error'),
-                "error_description": error_data.get('error_description', 'An error occurred'),
-                "error_detail": error_detail,
-                "status_code": status_code
-            }
+    if status_code != 200:
+        error_data = json.loads(response.read().decode('utf-8'))
+        error_detail = error_data.get('error_detail', {})
+        return {
+            "error": error_data.get('error', 'Unknown Error'),
+            "error_description": error_data.get('error_description', 'An error occurred'),
+            "error_detail": error_detail,
+            "status_code": status_code
+        }
 
     # A successful DELETE request should return a 200 status code for Eventbrite
     return print({"message": "Event deleted successfully", "status_code": status_code})
@@ -150,15 +149,15 @@ def unpublish_event(eventbrite_api_token, event_id):
     with urllib.request.urlopen(req) as resp:
         data = resp.read().decode('utf-8')
 
-        if resp.status != 200:
-            error_data = json.loads(data)
-            error_detail = error_data.get('error_detail', {})
-            return {
-                "error": error_data.get('error', 'Unknown Error'),
-                "error_description": error_data.get('error_description', 'An error occurred'),
-                "error_detail": error_detail,
-                "status_code": resp.status
-            }
+    if resp.status != 200:
+        error_data = json.loads(data)
+        error_detail = error_data.get('error_detail', {})
+        return {
+            "error": error_data.get('error', 'Unknown Error'),
+            "error_description": error_data.get('error_description', 'An error occurred'),
+            "error_detail": error_detail,
+            "status_code": resp.status
+        }
     print({"message": "Event unpublished successfully", "status_code": resp.status})
     return json.loads(data)
 
@@ -175,15 +174,15 @@ def publish_event(eventbrite_api_token, event_id):
     with urllib.request.urlopen(req) as resp:
         data = resp.read().decode('utf-8')
 
-        if resp.status != 200:
-            error_data = json.loads(data)
-            error_detail = error_data.get('error_detail', {})
-            return {
-                "error": error_data.get('error', 'Unknown Error'),
-                "error_description": error_data.get('error_description', 'An error occurred'),
-                "error_detail": error_detail,
-                "status_code": resp.status
-            }
+    if resp.status != 200:
+        error_data = json.loads(data)
+        error_detail = error_data.get('error_detail', {})
+        return {
+            "error": error_data.get('error', 'Unknown Error'),
+            "error_description": error_data.get('error_description', 'An error occurred'),
+            "error_detail": error_detail,
+            "status_code": resp.status
+        }
     print({"message": "Event published successfully", "status_code": resp.status})
     return json.loads(data)
 
@@ -202,15 +201,15 @@ def create_ticket_class(eventbrite_api_token, event_id, ticket_details):
     with urllib.request.urlopen(req) as resp:
         data = resp.read().decode('utf-8')
 
-        if resp.status != 200:
-            error_data = json.loads(data)
-            error_detail = error_data.get('error_detail', {})
-            return {
-                "error": error_data.get('error', 'Unknown Error'),
-                "error_description": error_data.get('error_description', 'An error occurred'),
-                "error_detail": error_detail,
-                "status_code": resp.status
-            }
+    if resp.status != 200:
+        error_data = json.loads(data)
+        error_detail = error_data.get('error_detail', {})
+        return {
+            "error": error_data.get('error', 'Unknown Error'),
+            "error_description": error_data.get('error_description', 'An error occurred'),
+            "error_detail": error_detail,
+            "status_code": resp.status
+        }
     print({"message": "Ticket class created successfully", "status_code": resp.status})
     return json.loads(data)
 
@@ -247,15 +246,15 @@ def update_ticket_class(eventbrite_api_token, event_id, ticket_class_id, ticket_
     with urllib.request.urlopen(req) as resp:
         data = resp.read().decode('utf-8')
 
-        if resp.status != 200:
-            error_data = json.loads(data)
-            error_detail = error_data.get('error_detail', {})
-            return {
-                "error": error_data.get('error', 'Unknown Error'),
-                "error_description": error_data.get('error_description', 'An error occurred'),
-                "error_detail": error_detail,
-                "status_code": resp.status
-            }
+    if resp.status != 200:
+        error_data = json.loads(data)
+        error_detail = error_data.get('error_detail', {})
+        return {
+            "error": error_data.get('error', 'Unknown Error'),
+            "error_description": error_data.get('error_description', 'An error occurred'),
+            "error_detail": error_detail,
+            "status_code": resp.status
+        }
     print({"message": "Ticket class updated successfully", "status_code": resp.status})
     return json.loads(data)
 
@@ -268,7 +267,6 @@ def quick_create_event(eventbrite_api_token, organization_id, title, description
     date_start = datetime.strptime(date_start, "%Y-%m-%dT%H:%M:%S")
 
     date_start = new_timezone.localize(date_start)
-    # Convert the local time string to a datetime object
 
     # Calculate the end datetime based on duration_hours
     date_end = date_start + timedelta(hours=duration_hours)
@@ -279,7 +277,6 @@ def quick_create_event(eventbrite_api_token, organization_id, title, description
     utc_date_end = date_end.astimezone(pytz.utc)
 
     # Create the event details JSON
-
     event_detail = {
         "event": {
             "name": {
