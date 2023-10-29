@@ -87,12 +87,15 @@ def get_events_by_organization(eventbrite_api_token, organization_id):
     return data
 
 def create_event(eventbrite_api_token, organization_id ,event_details):
+    summary_length = len(event_details['event'].get('summary', ''))
+    assert summary_length <= 140, f'Summary is limited to 140 characters. Got {summary_length}'
+
     url = f"{EVENTBRITE_API_BASE_URL}organizations/{organization_id}/events/"
     headers = {
     'Authorization': eventbrite_api_token,
     'Content-Type': 'application/json'
     }
-    event_details_bytes = event_details.encode('utf-8')
+    event_details_bytes = json.dumps(event_details).encode('utf-8')
 
     req = urllib.request.Request(url, headers=headers, data=event_details_bytes, method='POST')
 
@@ -108,6 +111,7 @@ def create_event(eventbrite_api_token, organization_id ,event_details):
             "error_detail": error_detail,
             "status_code": resp.status
         }
+
     print({"message": "Event created successfully", "status_code": resp.status})
     return json.loads(data)
 
@@ -285,14 +289,10 @@ def update_ticket_class(eventbrite_api_token, event_id, ticket_class_id, ticket_
     print({"message": "Ticket class updated successfully", "status_code": resp.status})
     return json.loads(data)
 
-def quick_create_event(eventbrite_api_token, organization_id, title, description, date_start, duration_hours, event_timezone='Australia/Perth', cost_cents=None, publish=False):
+def quick_create_event(eventbrite_api_token, organization_id, title, summary, description, date_start, duration_hours, event_timezone='Australia/Perth', cost_cents=None, publish=False):
 
     # Create a timezone object for the specified timezone
     new_timezone = pytz.timezone(event_timezone)
-
-    # Convert date_start to a timezone-aware datetime
-    date_start = datetime.strptime(date_start, "%Y-%m-%dT%H:%M:%S")
-
     date_start = new_timezone.localize(date_start)
 
     # Calculate the end datetime based on duration_hours
@@ -307,10 +307,11 @@ def quick_create_event(eventbrite_api_token, organization_id, title, description
     event_detail = {
         "event": {
             "name": {
-                "html": f"<p>{title}</p>"
+                "html": title,
             },
+            # 'summary': summary,
             "description": {
-                "html": f"<p>{description}</p>"
+                "html": '<p>' + summary + '</p>' + description,
             },
             "start": {
                 "timezone": new_timezone.zone,
@@ -338,11 +339,8 @@ def quick_create_event(eventbrite_api_token, organization_id, title, description
         }
     }
 
-    # Convert the event details to a JSON string
-    event_detail_json = json.dumps(event_detail)
-
     # Create the event
-    new_event = create_event(eventbrite_api_token, organization_id, event_detail_json)
+    new_event = create_event(eventbrite_api_token, organization_id, event_detail)
 
     # Extract the event_id from the response
     event_id = new_event.get('id')
@@ -380,14 +378,33 @@ def quick_create_event(eventbrite_api_token, organization_id, title, description
         publish_event(eventbrite_api_token, event_id)
     return new_event, new_tickets
 
-if __name__ == "__main__":
+def find_file_to_process(eventbrite_api_token, organization_id, publish, files):
+    for path in files:
+        try:
+            time_txt, title = path.split('_', 1)
 
+            # Convert date_start to a timezone-aware datetime
+            date_start = datetime.strptime(time_txt, "%Y-%m-%dT%H:%M")
+        except Exception as e:
+            print(f'Cannot process {path}: {e}')
+        else:
+            print(f'"{path}" is extracted.')
+            with open(path) as f:
+                summary, description = f.read().split('\n', 1)
+                cleaned_description = description.strip()
+
+            print(quick_create_event(eventbrite_api_token, organization_id, title, summary, cleaned_description, date_start, 2, 'Australia/Perth', None, publish))
+            print('Programme ends')
+            return
+
+if __name__ == '__main__':
     # Retrieve the values of an environment variables
     eventbrite_api_token = os.environ['EVENTBRITE_API_TOKEN']
     organization_id = os.environ['EVENTBRITE_ORGANIZATION_ID']
-    publish = os.environ.get("PUBLISH")
+    publish = os.environ.get("PUBLISH", 'no') == 'yes'
 
-    print(quick_create_event(eventbrite_api_token, organization_id, "API-TEST-617", "API-TEST-DESCRIPTION-9", "2023-11-12T14:00:00", 2, 'Australia/Perth', 2000, publish))
+    files = sorted(os.listdir(), reverse=True)
+    find_file_to_process(eventbrite_api_token, organization_id, publish, files)
 
     # TO PUBLISH AN EVENT
     # 1. CREATE AN EVENT
