@@ -1,4 +1,5 @@
 import urllib.request
+import urllib.parse
 import json
 import os
 from datetime import timedelta, datetime
@@ -8,6 +9,32 @@ import pytz
 
 EVENTBRITE_API_BASE_URL = "https://www.eventbriteapi.com/v3/"
 
+'''
+# https://www.eventbrite.com/platform/api#/introduction/authentication/2.-(for-app-partners)-authorize-your-users
+def get_oauth_token():
+    # Get this working if using private token in header is not secure enough
+    req = urllib.request.Request(,
+        'https://www.eventbrite.com/oauth/token',
+        data=urllib.parse.urlencode({
+            grant_type=authorization_code,
+            client_id
+            client_secret,
+            code
+            redirect_uri
+        }).encode(),
+        headers={
+            'content-type': 'application/x-www-form-urlencoded',
+        })
+def get_api_token(api_key):
+    # Get this working if using private token in header is not secure enough
+    req = urllib.request.Request('https://www.eventbrite.com/oauth/authorize?' + urllib.parse.urlencode({
+        'response_type': 'token',
+        'client_id': api_key,
+        'redirect_uri': 'http://example.robin.au/eventbrite/redirect_uri',
+    }))
+    with urllib.request.urlopen(req) as resp:
+        data = resp.read()
+'''
 
 def get_organization(eventbrite_api_token):
     url = f"{EVENTBRITE_API_BASE_URL}users/me/organizations/"
@@ -366,8 +393,3 @@ if __name__ == "__main__":
     # 1. CREATE AN EVENT
     # 2. CREATE A TICKET CLASS TO EVENT
     # 3. PUBLISH EVENT
-
-
-
-
-
