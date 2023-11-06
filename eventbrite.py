@@ -329,7 +329,7 @@ def quick_create_event(eventbrite_api_token, organization_id, title, summary, de
             "shareable": True,
             "invite_only": False,
             "show_remaining": True,
-            "capacity": 100,
+            "capacity": 10,
             "is_reserved_seating": False,
             "is_series": False,
             "show_pick_a_seat": False,
@@ -351,7 +351,7 @@ def quick_create_event(eventbrite_api_token, organization_id, title, summary, de
         {
             "name": "API Test1",
             "donation": "false",
-            "quantity_total": "100",
+            "quantity_total": "10",
             "minimum_quantity": "1",
             "maximum_quantity": "10",
             "hidden": "false",
