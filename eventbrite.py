@@ -5,6 +5,8 @@ import os
 from datetime import timedelta, datetime
 import pytz
 
+HILLVIEW_HUB_VENUE_ID = '183876909'
+
 # EVENTBRITE API SCRIPT
 
 EVENTBRITE_API_BASE_URL = "https://www.eventbriteapi.com/v3/"
@@ -35,6 +37,38 @@ def get_api_token(api_key):
     with urllib.request.urlopen(req) as resp:
         data = resp.read()
 '''
+
+def urlopen(api_token, method, url, data=None):
+    assert method in ('POST', 'GET')
+    # Make the request
+    req = urllib.request.Request(
+        url,
+        method=method,
+        data=json.dumps(data).encode() if data is not None else None,
+        headers={
+            'Authorization': api_token,
+            'Content-Type': 'application/json',
+        })
+     # Perform the GET request
+    try:
+        with urllib.request.urlopen(req) as resp:
+            response_data = resp.read().decode('utf-8')
+    except urllib.error.HTTPError as e:
+        print(e.read())
+        raise
+    return response_data
+
+def create_venue(api_token, organization_id, name, google_place_id):
+    """
+    Use manually just to get the venue ID to be hardcoded
+    in event creation.
+    """
+    return urlopen(api_token, 'POST', os.path.join(EVENTBRITE_API_BASE_URL, f'organizations/{organization_id}/venues/'), {
+        'venue': {
+            'name': name,
+            'google_place_id': google_place_id,
+        },
+    })
 
 def get_organization(eventbrite_api_token):
     url = f"{EVENTBRITE_API_BASE_URL}users/me/organizations/"
@@ -289,7 +323,7 @@ def update_ticket_class(eventbrite_api_token, event_id, ticket_class_id, ticket_
     print({"message": "Ticket class updated successfully", "status_code": resp.status})
     return json.loads(data)
 
-def quick_create_event(eventbrite_api_token, organization_id, title, summary, description, date_start, duration_hours, event_timezone='Australia/Perth', cost_cents=None, publish=False):
+def quick_create_event(now, eventbrite_api_token, organization_id, title, summary, description, date_start, duration_hours, event_timezone='Australia/Perth', cost_cents=None, publish=False):
 
     # Create a timezone object for the specified timezone
     new_timezone = pytz.timezone(event_timezone)
@@ -306,6 +340,7 @@ def quick_create_event(eventbrite_api_token, organization_id, title, summary, de
     # Create the event details JSON
     event_detail = {
         "event": {
+            'venue_id': HILLVIEW_HUB_VENUE_ID,
             "name": {
                 "html": title,
             },
@@ -362,8 +397,8 @@ def quick_create_event(eventbrite_api_token, organization_id, title, summary, de
             "hide_sale_dates": "false",
             "delivery_methods": ["electronic"],
             "include_fee": "false",
-            "sales_start": date_start.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "sales_end": date_end.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sales_start": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sales_end": utc_date_end.strftime("%Y-%m-%dT%H:%M:%SZ"),
             **({"cost": f"AUD,{cost_cents}", "free": "false"} if cost_cents is not None else {'free': "true"}),
         }
     }
@@ -393,7 +428,7 @@ def find_file_to_process(eventbrite_api_token, organization_id, publish, files):
                 summary, description = f.read().split('\n', 1)
                 cleaned_description = description.strip()
 
-            print(quick_create_event(eventbrite_api_token, organization_id, title, summary, cleaned_description, date_start, 2, 'Australia/Perth', None, publish))
+            print(quick_create_event(datetime.now(), eventbrite_api_token, organization_id, title, summary, cleaned_description, date_start, 2, 'Australia/Perth', None, publish))
             print('Programme ends')
             return
 
