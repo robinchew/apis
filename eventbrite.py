@@ -5,7 +5,7 @@ import os
 from datetime import timedelta, datetime
 import pytz
 
-HILLVIEW_HUB_VENUE_ID = '183876909'
+HILLVIEW_HUB_VENUE_ID = '183878619' # https://www.eventbriteapi.com/v3/venues/183878619/
 
 # EVENTBRITE API SCRIPT
 
@@ -58,7 +58,7 @@ def urlopen(api_token, method, url, data=None):
         raise
     return response_data
 
-def create_venue(api_token, organization_id, name, google_place_id):
+def create_venue(api_token, organization_id, name, google_place_id, road_address, city, postal_code, country):
     """
     Use manually just to get the venue ID to be hardcoded
     in event creation.
@@ -66,7 +66,13 @@ def create_venue(api_token, organization_id, name, google_place_id):
     return urlopen(api_token, 'POST', os.path.join(EVENTBRITE_API_BASE_URL, f'organizations/{organization_id}/venues/'), {
         'venue': {
             'name': name,
-            'google_place_id': google_place_id,
+            'google_place_id': google_place_id, # This does not work, so set address object instead
+            'address': {
+                'address_1': road_address,
+                'city': city,
+                'postal_code': postal_code,
+                'country': country,
+            },
         },
     })
 
