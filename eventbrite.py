@@ -1,3 +1,5 @@
+from enum import Enum
+import mimetypes
 import urllib.request
 import urllib.parse
 import json
@@ -5,11 +7,32 @@ import os
 from datetime import timedelta, datetime
 import pytz
 
+from multipart_sender import MultiPartForm
+
+BOUNDARY = b'your_boundary_string'
+DataType = Enum('DataType', ['JSON', 'FILE'])
 HILLVIEW_HUB_VENUE_ID = '183878619' # https://www.eventbriteapi.com/v3/venues/183878619/
+IMAGE_ID = '640067109'
 
 # EVENTBRITE API SCRIPT
 
 EVENTBRITE_API_BASE_URL = "https://www.eventbriteapi.com/v3/"
+
+from PIL import Image
+from io import BytesIO
+
+def generate_one_pixel_jpeg():
+    # Create a new image with mode 'RGB' and size 1x1
+    image = Image.new('RGB', (1, 1), color=(255, 255, 255))
+
+    # Save the image to a BytesIO object
+    image_data = BytesIO()
+    image.save(image_data, format='JPEG')
+
+    # Get the binary content
+    image_content = image_data.getvalue()
+
+    return image_content
 
 '''
 # https://www.eventbrite.com/platform/api#/introduction/authentication/2.-(for-app-partners)-authorize-your-users
@@ -38,32 +61,112 @@ def get_api_token(api_key):
         data = resp.read()
 '''
 
-def urlopen(api_token, method, url, data=None):
+def encode_multipart_formdata_(fields, boundary):
+    body = b''
+    for field_name, (filename, data) in fields.items():
+        body += b'--' + boundary.encode() + b'\r\n'
+        body += f'Content-Disposition: form-data; name="{field_name}"; filename="{filename}"\r\n'.encode()
+        body += b'Content-Type: application/octet-stream\r\n\r\n'
+        body += data + b'\r\n'
+    body += b'--' + boundary.encode() + b'--\r\n'
+    return body
+
+def encode_multipart_formdata(fields, files):
+    boundary = b'--'+ BOUNDARY
+    body = []
+
+    # Add fields
+    for key, value in fields.items():
+        print('k', key, 'v', value)
+        body.append(boundary)
+        body.append(b'Content-Disposition: form-data; name="' + key + b'"')
+        body.append(b'')
+        body.append(value)
+
+    # Add files
+    for key, (filename, file_content) in files.items():
+        body.append(boundary)
+        body.append(b'Content-Disposition: form-data; name="'+ key + b'"; filename="' + filename + b'"')
+        body.append(b'Content-Type: image/jpeg')
+        #body.append(b'Content-Type: application/octet-stream')
+        body.append(b'')
+        #body.append(generate_one_pixel_jpeg())
+        body.append(file_content)
+
+    # Add closing boundary
+    body.append(boundary + b'--\r\n')
+    # body.append(b'')
+    return b'\r\n'.join(body), boundary
+
+def urlopen(api_token, method, url, data_type=None, data=None):
     assert method in ('POST', 'GET')
     # Make the request
+    data, headers = {
+        DataType.JSON: lambda: (json.dumps(data).encode(), {'Content-Type': 'application/json'}),
+        DataType.FILE: lambda: (data, {'Content-Type': 'multipart/form-data; boundary=' + BOUNDARY.decode()}),
+        None: lambda: (data, {})
+    }[data_type]()
+
     req = urllib.request.Request(
         url,
         method=method,
-        data=json.dumps(data).encode() if data is not None else None,
+        data=data,
         headers={
-            'Authorization': api_token,
-            'Content-Type': 'application/json',
+            **({'Authorization': api_token} if api_token is not None else {}),
+            **headers,
         })
+
      # Perform the GET request
     try:
         with urllib.request.urlopen(req) as resp:
             response_data = resp.read().decode('utf-8')
+            print('rps stts', resp.status)
     except urllib.error.HTTPError as e:
         print(e.read())
         raise
     return response_data
+
+def upload_image(api_token, file_path):
+    url = os.path.join(EVENTBRITE_API_BASE_URL, 'media/upload/') + '?' + urllib.parse.urlencode({
+        'type': 'image-event-logo',
+    })
+
+    upload_data = json.loads(urlopen(api_token, 'GET', url))
+    field_name = upload_data['file_parameter_name']
+    with open(file_path, 'rb') as f:
+        content = f.read()
+    fields = {field_name.encode(): (os.path.basename(file_path).encode(), content)}
+    data, bound = encode_multipart_formdata(
+        {
+            k.encode(): v.encode()
+            for k,v in upload_data['upload_data'].items()
+        },
+        fields)
+    print('dt', data)
+    print('upldat', upload_data)
+    #import pdb;pdb.set_trace()
+    d2 = urlopen(None, 'POST', upload_data['upload_url'], DataType.FILE, data)
+    print('d2', d2)
+    #import pdb;pdb.set_trace()
+
+    return urlopen(api_token, 'POST', url, DataType.JSON, {
+        'upload_token': upload_data['upload_token'],
+        'crop_mask': {
+            'top_left': {
+                'x': 0,
+                'y': 720,
+            },
+            'width': 4160,
+            'height': 2100,
+        },
+    })
 
 def create_venue(api_token, organization_id, name, google_place_id, road_address, city, postal_code, country):
     """
     Use manually just to get the venue ID to be hardcoded
     in event creation.
     """
-    return urlopen(api_token, 'POST', os.path.join(EVENTBRITE_API_BASE_URL, f'organizations/{organization_id}/venues/'), {
+    return urlopen(api_token, 'POST', os.path.join(EVENTBRITE_API_BASE_URL, f'organizations/{organization_id}/venues/'), DataType.JSON, {
         'venue': {
             'name': name,
             'google_place_id': google_place_id, # This does not work, so set address object instead
@@ -346,6 +449,7 @@ def quick_create_event(now, eventbrite_api_token, organization_id, title, summar
     # Create the event details JSON
     event_detail = {
         "event": {
+            'logo_id': IMAGE_ID,
             'venue_id': HILLVIEW_HUB_VENUE_ID,
             "name": {
                 "html": title,
